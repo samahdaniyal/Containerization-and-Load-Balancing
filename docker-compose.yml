@@ -1,1 +1,92 @@
 # Students: Create your docker-compose.yml file here following the README.md instructions
+version: '3.8'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:15
+    environment:
+      POSTGRES_DB: shortener
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d shortener"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: redis
+    image: redis:7
+    restart: always
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web1:
+    container_name: web1
+    build: .
+    environment:
+      REDIS_HOST: redis
+      DB_HOST: postgres
+      DB_NAME: shortener
+      DB_USER: user
+      DB_PASS: password
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web2:
+    container_name: web2
+    build: .
+    environment:
+      REDIS_HOST: redis
+      DB_HOST: postgres
+      DB_NAME: shortener
+      DB_USER: user
+      DB_PASS: password
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web3:
+    container_name: web3
+    build: .
+    environment:
+      REDIS_HOST: redis
+      DB_HOST: postgres
+      DB_NAME: shortener
+      DB_USER: user
+      DB_PASS: password
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    ports:
+      - "9999:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web1
+      - web2
+      - web3
+
+volumes:
+  postgres_data:
+  redis_data:
