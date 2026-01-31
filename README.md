@@ -65,6 +65,7 @@ docker-compose up --build -d
 
 # Verify the health of the cluster
 docker-compose ps
+```
 
 ---
 
