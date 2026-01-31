@@ -67,4 +67,5 @@ docker-compose up --build -d
 docker-compose ps
 
 ---
+
 Once running, the load-balanced application is accessible at http://localhost:9999
